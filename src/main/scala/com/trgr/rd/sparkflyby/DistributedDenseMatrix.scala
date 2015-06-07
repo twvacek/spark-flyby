@@ -13,7 +13,7 @@ import org.apache.spark.storage.StorageLevel
 import org.apache.spark.Flyby._
 import org.apache.spark.SparkContext
 
-object DenseMatrixNew {
+object DistributedDenseMatrix {
 
   case class Blocking(m:Int, n:Int, mBlocks:Int, nBlocks:Int) {
     require(mBlocks <= m && nBlocks <= n, "block size must be less than overall size")
