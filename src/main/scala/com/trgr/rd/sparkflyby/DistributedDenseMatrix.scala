@@ -211,7 +211,7 @@ object DistributedDenseMatrix {
       val blocking = new Blocking (m, n, mBlocks, nBlocks)
       val part = new ColMajorPartitioner(nPartitions, blocking)
       val blocks = sc.parallelize(0 until mBlocks*nBlocks, nPartitions).map{i =>
-        val blockId = (i%nBlocks, i/nBlocks)
+        val blockId = (i%mBlocks, i/mBlocks)
         val blockSize = blocking.getBlockSize(blockId)
         val entries = Array.fill(blockSize._1 * blockSize._2)(util.Random.nextGaussian)
         (blockId, new DenseMatrix(blockSize._1, blockSize._2, entries))
