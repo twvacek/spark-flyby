@@ -30,11 +30,11 @@
             <artifactId>spark-core_2.10</artifactId>
             <version>1.2.0</version>
         </dependency>
-        <!--dependency>
+        <dependency>
             <groupId>org.apache.spark</groupId>
             <artifactId>spark-mllib_2.10</artifactId>
             <version>1.2.0</version>
-        </dependency-->
+        </dependency>
         <dependency>
             <groupId>org.scalatest</groupId>
             <artifactId>scalatest_2.10</artifactId>
@@ -47,11 +47,11 @@
             <version>4.8.1</version>
             <scope>compile</scope>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>org.scalanlp</groupId>
             <artifactId>breeze_2.10</artifactId>
             <version>0.11.2</version>
-        </dependency>
+        </dependency-->
     </dependencies>
 
     <build>

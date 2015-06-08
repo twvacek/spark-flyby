@@ -5,7 +5,6 @@ package com.trgr.rd.sparkflyby
  */
 
 import breeze.linalg._
-import breeze.numerics._
 import org.apache.spark.SparkContext._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.Partitioner
