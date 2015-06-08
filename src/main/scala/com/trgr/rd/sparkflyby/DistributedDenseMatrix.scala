@@ -1,4 +1,4 @@
-package org.apache.spark.flyby
+package com.trgr.rd.sparkflyby
 
 /**
  * Created by U0159515 on 6/6/15.
@@ -73,7 +73,7 @@ object DistributedDenseMatrix {
 
     //indexes into y based on x's global col index
     def accpxyOuter(acc:MatrixBlock, x:MatrixBlock, xBlocking:Blocking, y:MatrixBlock) = {
-      if(x._2.cols != y._2.rows || y._2.cols != acc._2.cols || x._2.rows != acc._2.rows) throw new UnsupportedOperationException("Dimensions must match");
+      if(y._2.cols != acc._2.cols || x._2.rows != acc._2.rows) throw new UnsupportedOperationException("Dimensions must match");
       val xCols = xBlocking.getBlockRange(x._1)._2
       if(xCols._2 > y._2.rows) throw new IndexOutOfBoundsException("xCols too large for y")
       val ySubBlock = y._2(xCols._1 until xCols._2, ::)
@@ -151,7 +151,10 @@ object DistributedDenseMatrix {
         throw new UnsupportedOperationException("flyByOuter only implemented for column-decomposed matrices")
       val newBlocking = Blocking(blocking.m, right.blocking.n, blocking.mBlocks, right.blocking.nBlocks)
       val newBlocks = blocks.flyby(right.blocks,
-        (left:MatrixBlock, right:MatrixBlock) => dot(left, right),
+        (left:MatrixBlock, right:MatrixBlock) => {
+          val acc = ((left._1._1, right._1._2), DenseMatrix.zeros[Double](left._2.rows, right._2.cols))
+          accpxyOuter(acc, left, blocking, right)
+        },
         (left:MatrixBlock, right:MatrixBlock, acc:MatrixBlock) => accpxyOuter(acc, left, blocking, right)
       )
       DenseBlockMatrix(newBlocking, newBlocks)
@@ -164,7 +167,7 @@ object DistributedDenseMatrix {
       val newBlocking = Blocking(blocking.m, right.blocking.n, 1, right.blocking.nBlocks)
       val newBlocks = blocks.flyby(right.blocks,
         (left:MatrixBlock, right:MatrixBlock) => {
-          val acc = new MatrixBlock( (1, right._1._2), DenseMatrix.zeros[Double](blocking.m, right._2.cols)) //rowId always 1
+          val acc = new MatrixBlock( (0, right._1._2), DenseMatrix.zeros[Double](blocking.m, right._2.cols)) //rowId always 0
           accpxyInner(acc, left, blocking, right)
         },
         (left:MatrixBlock, right:MatrixBlock, acc:MatrixBlock) => accpxyInner(acc, left, blocking, right)
@@ -175,13 +178,15 @@ object DistributedDenseMatrix {
     def frobNormSqDiff(right:DenseBlockMatrix) = {
       if(blocking != right.blocking) throw new UnsupportedOperationException("Blocking mismatch.  Reblock one matrix to match")
       blocks.join(right.blocks).map{case (_, (left, right)) => left.data.zip(right.data).foldLeft(0.){case (acc, (lv, rv)) => {val diff = lv-rv; acc + diff*diff}}}.reduce(_+_)
-
+    }
+    def frobNormSq = {
+      blocks.map{ case (id, vals) => vals.data.foldLeft(0.){case (acc, v) => acc + v*v}}.reduce(_+_)
     }
 
     def reblock(mBlocks:Int, nBlocks:Int, nPartitions:Option[Int] = None) = {
       val newBlocking = Blocking(blocking.m, blocking.n, mBlocks, nBlocks)
       val part = new ColMajorPartitioner(nPartitions.getOrElse(blocks.partitions.length), newBlocking)
-      blocks.flatMap{case (blkIndex, values) =>
+      val newBlocks = blocks.flatMap{case (blkIndex, values) =>
         values.iterator.map{case (locIndex,v) =>
           val (newLoc, newBlk) = newBlocking.getLocAndBlkInds(blocking.getGlobalIndex(locIndex, blkIndex))
           (newBlk, (newLoc,v))
@@ -197,8 +202,9 @@ object DistributedDenseMatrix {
         //new MatrixBlock(blkId, DenseMatrix(nRows, nCols, ijvArray.sortBy { case ((i, j), v) => j * nCols + i }.map(_._2) ))
         new MatrixBlock(blkId, newMat)
       }
+      DenseBlockMatrix(newBlocking, newBlocks)
     }
-    def persist(storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY) = blocks.persist(storageLevel)
+    def persist(storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY) = {blocks.persist(storageLevel); this}
     def count = blocks.count
   }
   object DenseBlockMatrix {
