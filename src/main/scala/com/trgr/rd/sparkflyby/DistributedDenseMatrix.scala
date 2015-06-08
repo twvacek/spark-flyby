@@ -197,10 +197,9 @@ object DistributedDenseMatrix {
         //new MatrixBlock(blkId, DenseMatrix(nRows, nCols, ijvArray.sortBy { case ((i, j), v) => j * nCols + i }.map(_._2) ))
         new MatrixBlock(blkId, newMat)
       }
-      def persist(storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY) = blocks.persist(storageLevel)
-      def count = blocks.count
     }
-
+    def persist(storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY) = blocks.persist(storageLevel)
+    def count = blocks.count
   }
   object DenseBlockMatrix {
     def newRandomMatrix(m:Int, n:Int, mBlocks:Int, nBlocks:Int, nPartitions:Int, sc: SparkContext) = {
