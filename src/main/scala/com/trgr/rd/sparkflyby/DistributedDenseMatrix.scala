@@ -14,7 +14,7 @@ import org.apache.spark.SparkContext
 
 object DistributedDenseMatrix {
 
-  case class Blocking(m:Int, n:Int, mBlocks:Int, nBlocks:Int) {
+  case class Blocking(m:Long, n:Long, mBlocks:Long, nBlocks:Long) {
     require(mBlocks <= m && nBlocks <= n, "block size must be less than overall size")
     def getBlockRange(index:(Int,Int)) : ((Int,Int), (Int,Int)) = {
       val (rowId, colId) = index
@@ -22,14 +22,14 @@ object DistributedDenseMatrix {
       if(colId<0 || colId >= nBlocks) throw new IndexOutOfBoundsException("requested blkColId out of range")
       val rowRan = (rowId*m/mBlocks, math.min( (rowId+1)*m/mBlocks, m) )
       val colRan = (colId*n/nBlocks, math.min( (colId+1)*n/nBlocks, n) )
-      (rowRan, colRan)
+      ((rowRan._1.toInt, rowRan._2.toInt), (colRan._1.toInt, colRan._2.toInt))
     }
 
     def getBlockId(globalIndex:(Int,Int)) : (Int,Int) = {
       val (i,j) = globalIndex
       if(i < 0 || i >= m) throw new IndexOutOfBoundsException("requested row index out of range")
       if(j < 0 || j >= n) throw new IndexOutOfBoundsException("requested col index out of range")
-      (i*mBlocks/m, j*nBlocks/n)
+      ((i*mBlocks/m).toInt, (j*nBlocks/n).toInt)
     }
 
     def getBlockSize(blockIndex: (Int,Int)) = {
@@ -85,8 +85,8 @@ object DistributedDenseMatrix {
 
     def getPartition(key: Any) = {
       key match {                                                                                              //can't be negative
-        case ((rowId: Int, colId: Int), _) => nPartitions * (rowId + blocking.mBlocks * colId) / (blocking.mBlocks * blocking.nBlocks)    //keys from shuffleMultiply
-        case (rowId: Int, colId: Int) => nPartitions * (rowId + blocking.mBlocks * colId) / (blocking.mBlocks * blocking.nBlocks)                   //keys from cartesianMultiply
+        case ((rowId: Int, colId: Int), _) => (nPartitions * (rowId + blocking.mBlocks * colId) / (blocking.mBlocks * blocking.nBlocks)).toInt    //keys from shuffleMultiply
+        case (rowId: Int, colId: Int) => (nPartitions * (rowId + blocking.mBlocks * colId) / (blocking.mBlocks * blocking.nBlocks)).toInt                   //keys from cartesianMultiply
         case _ => 0
       }
     }
@@ -108,13 +108,13 @@ object DistributedDenseMatrix {
       val part = new ColMajorPartitioner(nPartitions.getOrElse(blocks.partitions.length), newBlocking)
 
       val leftShuffle = blocks.flatMap {case ((blkRow, blkCol), values) =>
-        (0 until blocking.nBlocks).map{ j =>
+        (0 until blocking.nBlocks.toInt).map{ j =>
           (((blkRow, j),blkCol), values)
         }
       }
 
       val rightShuffle = right.blocks.flatMap {case ((blkRow, blkCol), values) =>
-        (0 until right.blocking.mBlocks).map{i =>
+        (0 until right.blocking.mBlocks.toInt).map{i =>
           (((i, blkCol), blkRow), values)
         }
       }
@@ -166,7 +166,7 @@ object DistributedDenseMatrix {
       val newBlocking = Blocking(blocking.m, right.blocking.n, 1, right.blocking.nBlocks)
       val newBlocks = blocks.flyby(right.blocks,
         (left:MatrixBlock, right:MatrixBlock) => {
-          val acc = new MatrixBlock( (0, right._1._2), DenseMatrix.zeros[Double](blocking.m, right._2.cols)) //rowId always 0
+          val acc = new MatrixBlock( (0, right._1._2), DenseMatrix.zeros[Double](blocking.m.toInt, right._2.cols)) //rowId always 0
           accpxyInner(acc, left, blocking, right)
         },
         (left:MatrixBlock, right:MatrixBlock, acc:MatrixBlock) => accpxyInner(acc, left, blocking, right)
@@ -204,6 +204,7 @@ object DistributedDenseMatrix {
       DenseBlockMatrix(newBlocking, newBlocks)
     }
     def persist(storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY) = {blocks.persist(storageLevel); this}
+    def unpersist = blocks.unpersist(false)
     def count = blocks.count
   }
   object DenseBlockMatrix {
