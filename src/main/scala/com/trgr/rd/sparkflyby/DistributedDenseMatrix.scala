@@ -197,6 +197,8 @@ object DistributedDenseMatrix {
         //new MatrixBlock(blkId, DenseMatrix(nRows, nCols, ijvArray.sortBy { case ((i, j), v) => j * nCols + i }.map(_._2) ))
         new MatrixBlock(blkId, newMat)
       }
+      def persist(storageLevel: StorageLevel = StorageLevel.MEMORY_ONLY) = blocks.persist(storageLevel)
+      def count = blocks.count
     }
 
   }
