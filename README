@@ -1,4 +1,9 @@
- val matB = DM.newRandomMatrix(25000, 25000, 10, 10, 100, sc)
+
+
+
+
+
+val matB = DM.newRandomMatrix(25000, 25000, 10, 10, 100, sc)
 matB.persist().count
 matB.shuffleMultiply(matB).frobNormSq
 //took 1308 seconds
@@ -22,4 +27,4 @@ res15: Double = 2014058.177673988
 
  spark-submit --master yarn-client --num-executors 5 --executor-cores 30 --driver-memory 10g \
   --executor-memory 50g --class com.trgr.rd.sparkflyby.TimingTest --conf spark.broadcast.compress=false \
-  ./SparkFlyby-1.0-SNAPSHOT.jar test_output_realz 30000  12 10 8
+  ./SparkFlyby-1.0-SNAPSHOT.jar test_output_realz 30000  12
