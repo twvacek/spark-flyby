@@ -1,4 +1,19 @@
+DistributedDenseMatrix is a toy class for evaluating cartesian dependency problems on Spark.
+One specifies a matrix dimension and block dimension.  Blocks are all of uniform size
+except possibly at the last index in each dimension.  The basic DenseMatrix object
+contains global blocking information, and a key-value RDD [((row_block, col_block), breeze.linalg.DenseMatrix)].
+In any operation where a partitioner is accepted, a column major partitioner is used, which places
+the blocks in column major order in the spark partitions.  Having fewer but larger blocks partitions allows work to be
+shifted from Spark to Breeze, and the extreme case of 1 block per partition is what I used in the evaluation.
 
+This implements several approaches to the problem.
+cartesian: Spark's built-in cartesian for these kinds of problems
+shuffle: Typical representative of shuffle-based matrix multiplication.  Somewhat clever partitioner to ensure
+ only a single shuffle.
+flybyInner: Uses flyby primitive, but uses inner-product multiplications to fill in submatrices of result
+flybyOuter: Users flyby primitive, but aggregates result from components of full dimension
+
+The inner and outer flavors of flyby differ primarily in the expected partitioning of their args.
 
 
 
@@ -25,6 +40,6 @@ res15: Double = 2014058.177673988
  --executor-memory 50g --class com.trgr.rd.sparkflyby.TimingTest --conf spark.broadcast.compress=false \
  ./SparkFlyby-1.0-SNAPSHOT.jar test_output_2 10000 3 6
 
- spark-submit --master yarn-client --num-executors 5 --executor-cores 30 --driver-memory 10g \
+ spark-submit --master yarn-client --num-executors 5 --executor-cores 30 --driver-memory 30g \
   --executor-memory 50g --class com.trgr.rd.sparkflyby.TimingTest --conf spark.broadcast.compress=false \
   ./SparkFlyby-1.0-SNAPSHOT.jar test_output_realz 30000  12
