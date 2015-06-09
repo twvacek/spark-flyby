@@ -16,6 +16,10 @@ res15: Double = 2014058.177673988
 
 //took 640 seconds
 
- spark-submit --master yarn-client --num-executors 10 --executor-cores 23 --driver-memory 10g \
+ spark-submit --master yarn-client --num-executors 5 --executor-cores 30 --driver-memory 10g \
  --executor-memory 50g --class com.trgr.rd.sparkflyby.TimingTest --conf spark.broadcast.compress=false \
- ./SparkFlyby-1.0-SNAPSHOT.jar test_output 10000 3 6
+ ./SparkFlyby-1.0-SNAPSHOT.jar test_output_2 10000 3 6
+
+ spark-submit --master yarn-client --num-executors 5 --executor-cores 30 --driver-memory 10g \
+  --executor-memory 50g --class com.trgr.rd.sparkflyby.TimingTest --conf spark.broadcast.compress=false \
+  ./SparkFlyby-1.0-SNAPSHOT.jar test_output_realz 30000  12 10 8

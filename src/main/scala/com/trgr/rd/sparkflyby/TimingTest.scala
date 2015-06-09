@@ -30,21 +30,21 @@ object TimingTest {
     val nBlocks = tail.tail.map(_.toInt)
     for(n <- nBlocks) {
       val colBlocked = DM.newRandomMatrix(matDim, matDim, 1, n*n, n*n, sc)
-      val rowBlocked = DM.newRandomMatrix(matDim, matDim, n*n, 1, n*n, sc)
-      rowBlocked.persist().count
+      //val rowBlocked = DM.newRandomMatrix(matDim, matDim, n*n, 1, n*n, sc)
+      //rowBlocked.persist().count
       colBlocked.persist().count
-      val (cartFrob, cartTime) = time{rowBlocked.cartesianMultiply(colBlocked).frobNormSq}
-      printer.println("cartesian %d %d\t%f\t%e".format(matDim, n, cartTime, cartFrob))
-      printer.flush()
-      val ((matin, fbInnerFrob), fbInnerTime) = time{
-        val mat = rowBlocked.flyByInner(colBlocked)
-        val frobNorm = mat.frobNormSq
-        (mat, frobNorm)
-      }
-      printer.println("flybyInner %d %d\t%f\t%e".format(matDim, n, fbInnerTime, fbInnerFrob))
-      printer.flush
-      matin.unpersist
-      rowBlocked.unpersist
+      //val (cartFrob, cartTime) = time{rowBlocked.cartesianMultiply(colBlocked).frobNormSq}
+      //printer.println("cartesian %d %d\t%f\t%e".format(matDim, n, cartTime, cartFrob))
+      //printer.flush()
+      //val ((matin, fbInnerFrob), fbInnerTime) = time{
+      //  val mat = rowBlocked.flyByInner(colBlocked)
+      //  val frobNorm = mat.frobNormSq
+      //  (mat, frobNorm)
+      //}
+      //printer.println("flybyInner %d %d\t%f\t%e".format(matDim, n, fbInnerTime, fbInnerFrob))
+      //printer.flush
+      //matin.unpersist
+      //rowBlocked.unpersist
 
       val ((matout, fbOuterFrob), fbOuterTime) = time{
         val mat = colBlocked.flyByOuter(colBlocked)
