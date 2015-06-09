@@ -29,8 +29,8 @@ object TimingTest {
     val matDim = tail(0).toInt
     val nBlocks = tail.tail.map(_.toInt)
     for(n <- nBlocks) {
-      val rowBlocked = DM.newRandomMatrix(matDim, matDim, 1, n*n, n*n, sc)
-      val colBlocked = DM.newRandomMatrix(matDim, matDim, n*n, 1, n*n, sc)
+      val colBlocked = DM.newRandomMatrix(matDim, matDim, 1, n*n, n*n, sc)
+      val rowBlocked = DM.newRandomMatrix(matDim, matDim, n*n, 1, n*n, sc)
       rowBlocked.persist().count
       colBlocked.persist().count
       val (cartFrob, cartTime) = time{rowBlocked.cartesianMultiply(colBlocked).frobNormSq}

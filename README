@@ -15,3 +15,7 @@ scala> sp/1e9
 res15: Double = 2014058.177673988
 
 //took 640 seconds
+
+ spark-submit --master yarn-client --num-executors 10 --executor-cores 23 --driver-memory 10g \
+ --executor-memory 50g --class com.trgr.rd.sparkflyby.TimingTest --conf spark.broadcast.compress=false \
+ ./SparkFlyby-1.0-SNAPSHOT.jar test_output 10000 3 6
