@@ -1,0 +1,17 @@
+ val matB = DM.newRandomMatrix(25000, 25000, 10, 10, 100, sc)
+matB.persist().count
+matB.shuffleMultiply(matB).frobNormSq
+//took 1308 seconds
+
+
+val matB = DM.newRandomMatrix(25000, 25000, 1, 100, 100, sc)
+matB.persist().count
+val st = System.nanoTime; prod = matB.flyByOuter(matB); sp = System.nanoTime
+
+scala> st/1e9
+res14: Double = 2013418.536998622
+
+scala> sp/1e9
+res15: Double = 2014058.177673988
+
+//took 640 seconds

@@ -134,7 +134,8 @@ object DistributedDenseMatrix {
       if(blocking.n != right.blocking.m || blocking.nBlocks != right.blocking.mBlocks) throw new UnsupportedOperationException("incompatible matrix blocking")
       val newBlocking = Blocking(blocking.m, right.blocking.n, blocking.mBlocks, right.blocking.nBlocks)
       val part = new ColMajorPartitioner(nPartitions.getOrElse(blocks.partitions.length), newBlocking)
-      val newBlocks = blocks.cartesian(right.blocks).flatMap{ case (lblk, rblk) =>
+      //val newBlocks = blocks.cartesian(right.blocks).flatMap{ case (lblk, rblk) =>  //reverse order for better striding
+        val newBlocks = right.blocks.cartesian(blocks).flatMap{ case (rblk, lblk) =>
         if(lblk._1._2 == rblk._1._1)
           Some( MatrixBlockOps.dot(lblk,rblk) )
         else None
