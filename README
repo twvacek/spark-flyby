@@ -1,3 +1,5 @@
+UPDATE December 15, 2021: I wrote this code for a 2015 Spark Summit talk. After a personal communication, I recovered this code base and reposted it here, also adding the Apache license. Dependencies need to be updated. One should consider switching from Breeze to Tensorflow Java (EagerSession) as a linear algebra library.
+
 DistributedDenseMatrix is a toy class for evaluating cartesian dependency problems on Spark.
 One specifies a matrix dimension and block dimension.  Blocks are all of uniform size
 except possibly at the last index in each dimension.  The basic DenseMatrix object
